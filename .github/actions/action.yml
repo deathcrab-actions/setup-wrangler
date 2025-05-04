@@ -1,0 +1,37 @@
+name: Setup Wrangler™ Environment
+description: Sets up an environment for using Wrangler™ with Cloudflare® Worker deployments.
+author: DeathCrab™
+
+inputs:
+  node-version:
+    description: The 'node-version' parameter to pass to 'setup-node'.
+    type: number
+    required: false
+    default: 20
+
+  skip-toml-check:
+    description: Skips the check for the default 'wrangler.toml' file in the root of the repository.
+    type: boolean
+    required: false
+    default: false    
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    
+    - name: Resolve wrangler config
+      if: ${{ inputs.skip-toml-check != 'true' && hashFiles('wrangler.toml') == '' }}
+      shell: pwsh
+      run: |
+        Write-Error "wrangler.toml is missing from the repository root."
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - run: npm ci
+      shell: bash
+
+    - run: npm install -g wrangler
+      shell: bash
